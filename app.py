@@ -99,19 +99,19 @@ semaine = sum(r[3] for r in rows if now.year == now.year)
 # ---------------- STATS ----------------
 col1, col2, col3 = st.columns(3)
 
-col1.metric("⏱️ Total", round(total, 2))
-col2.metric("📅 Mois", round(mois, 2))
-col3.metric("📆 Semaine", round(semaine, 2))
+col1.metric("Total", round(total, 2))
+col2.metric("Mois", round(mois, 2))
+col3.metric("Semaine", round(semaine, 2))
 
 # ---------------- SALAIRE ----------------
 st.subheader("💰 Salaire")
 
-taux = st.number_input("Taux horaire (€)", value=12.0)
+taux = 9,5
 
 st.success(f"💵 Salaire estimé : {round(total * taux, 2)} €")
 
 # ---------------- TABLE ----------------
-st.subheader("📋 Historique")
+st.subheader("Historique")
 
 if rows:
     st.dataframe(
