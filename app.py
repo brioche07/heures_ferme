@@ -106,7 +106,7 @@ col3.metric("Semaine", round(semaine, 2))
 # ---------------- SALAIRE ----------------
 st.subheader("💰 Salaire")
 
-taux = 9,5
+taux = 9.5
 
 st.success(f"💵 Salaire estimé : {round(total * taux, 2)} €")
 
