@@ -1,12 +1,12 @@
 import streamlit as st
 import sqlite3
-from datetime import datetime, date
+from datetime import datetime, date, time
 
 st.set_page_config(page_title="Heures ferme", layout="centered")
 
-st.title("🐄 Suivi heures de travail")
+st.title("Mes heures ferme")
 
-# ---------------- DB ----------------
+# ---------------- DATABASE ----------------
 conn = sqlite3.connect("heures.db", check_same_thread=False)
 c = conn.cursor()
 
@@ -22,71 +22,79 @@ CREATE TABLE IF NOT EXISTS heures (
 """)
 conn.commit()
 
-# ---------------- HELPERS ----------------
-def format_time(t):
-    return t.strftime("%H:%M")
+# ---------------- AUTO LOGIC ----------------
+now = datetime.now()
+heure = now.hour
 
-def format_date(d):
-    return d.strftime("%d/%m/%Y")
+default_date = date.today()
+default_debut = time(7, 0)
+default_fin = time(9, 0)
+default_tache = ""
 
-def round_to_30min(dt):
-    minutes = dt.minute
-    rounded = 30 if minutes > 15 else 0
-    return dt.replace(minute=rounded, second=0, microsecond=0)
+if heure >= 17:
+    default_debut = time(17, 0)
+    default_fin = time(19, 0)
+    default_tache = "soir"
+
+elif heure >= 7:
+    default_debut = time(7, 0)
+    default_fin = time(9, 0)
+    default_tache = "matin"
 
 # ---------------- INPUTS ----------------
-st.subheader("➕ Ajouter une session")
+st.subheader("Ajouter des heures")
 
-date_input = st.date_input("Date", value=date.today())
+date_input = st.date_input("Date", value=default_date)
 
 col1, col2 = st.columns(2)
 
 with col1:
-    debut = st.time_input("Début")
+    debut = st.time_input("Début", value=default_debut)
 
 with col2:
-    fin = st.time_input("Fin")
+    fin = st.time_input("Fin", value=default_fin)
 
-tache = st.text_input("Tâche (traite, foins, mécanique...)")
+tache = st.text_input("Tâche", value=default_tache)
 
-# conversion datetime
+# ---------------- CALCUL ----------------
 d1 = datetime.combine(date_input, debut)
 d2 = datetime.combine(date_input, fin)
 
-# calcul heures
 heures = max(0, (d2 - d1).seconds / 3600)
 
-st.info(f"⏱️ {round(heures, 2)} h")
+st.info(f"⏱️ Heures calculées : {round(heures, 2)} h")
 
+# ---------------- ADD DATA ----------------
 if st.button("Ajouter"):
     c.execute("""
         INSERT INTO heures (date, debut, fin, heures, tache)
         VALUES (?, ?, ?, ?, ?)
     """, (
         date_input.strftime("%d/%m/%Y"),
-        format_time(debut),
-        format_time(fin),
+        debut.strftime("%H:%M"),
+        fin.strftime("%H:%M"),
         heures,
         tache
     ))
     conn.commit()
     st.success("Ajouté !")
 
-# ---------------- DATA ----------------
+# ---------------- LOAD DATA ----------------
 st.divider()
 st.subheader("📊 Résumé")
 
 c.execute("SELECT date, debut, fin, heures, tache FROM heures ORDER BY id DESC")
 rows = c.fetchall()
 
-# total
 total = sum(r[3] for r in rows)
 
-# mois / semaine
-now = datetime.now()
+# mois / semaine simplifiés
+now_month = now.strftime("%m/%Y")
 
-mois = sum(r[3] for r in rows if now.strftime("%m/%Y") in r[0])
-semaine = sum(r[3] for r in rows if now.strftime("%Y") in r[0])  # simple version
+mois = sum(r[3] for r in rows if now_month in r[0])
+
+# semaine simple (approx)
+semaine = sum(r[3] for r in rows if now.year == now.year)
 
 # ---------------- STATS ----------------
 col1, col2, col3 = st.columns(3)
@@ -95,14 +103,14 @@ col1.metric("⏱️ Total", round(total, 2))
 col2.metric("📅 Mois", round(mois, 2))
 col3.metric("📆 Semaine", round(semaine, 2))
 
-# ---------------- TAUX HORAIRE ----------------
+# ---------------- SALAIRE ----------------
 st.subheader("💰 Salaire")
 
 taux = st.number_input("Taux horaire (€)", value=12.0)
 
 st.success(f"💵 Salaire estimé : {round(total * taux, 2)} €")
 
-# ---------------- TABLEAU PROPRE ----------------
+# ---------------- TABLE ----------------
 st.subheader("📋 Historique")
 
 if rows:
