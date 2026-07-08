@@ -59,13 +59,10 @@ if heure_actuelle >= 17:
 
 # ---------------- TITRE ----------------
 
-st.title("🐄 Suivi des heures de travail")
+st.title("Mes heures")
 
 
 # ---------------- AJOUT ----------------
-
-st.subheader("➕ Ajouter une session")
-
 
 date_travail = st.date_input(
     "Date",
@@ -199,10 +196,7 @@ if donnees:
     st.subheader("💰 Salaire")
 
 
-    taux = st.number_input(
-        "Taux horaire (€)",
-        value=12.31
-    )
+    taux = 9.5
 
 
     st.success(
