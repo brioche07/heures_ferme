@@ -2,8 +2,6 @@ import streamlit as st
 from supabase import create_client
 from datetime import datetime, date, time, timedelta
 import pandas as pd
-from datetime import timezone
-import pytz
 
 
 # ---------------- CONFIG ----------------
@@ -61,10 +59,12 @@ if heure_actuelle >= 17:
 
 # ---------------- TITRE ----------------
 
-st.title("Mes heures")
+st.title("🐄 Suivi des heures de travail")
 
 
 # ---------------- AJOUT ----------------
+
+st.subheader("➕ Ajouter une session")
 
 
 date_travail = st.date_input(
@@ -155,7 +155,7 @@ if donnees:
     total = df["heures"].sum()
 
 
-    aujourd_hui = datetime.now(pytz.timezone("Europe/Paris"))
+    aujourd_hui = datetime.now()
 
 
     debut_semaine = aujourd_hui - timedelta(
@@ -196,11 +196,13 @@ if donnees:
 
     # ---------------- SALAIRE ----------------
 
-    st.subheader("Salaire")
+    st.subheader("💰 Salaire")
 
 
-    taux = 9.5
-    
+    taux = st.number_input(
+        "Taux horaire (€)",
+        value=12.31
+    )
 
 
     st.success(
